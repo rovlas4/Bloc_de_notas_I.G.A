@@ -92,5 +92,8 @@
   <ItemGroup>
     <None Include="Resources\PikPng.com_save-icon-png_2571759%281%29.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\357.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
