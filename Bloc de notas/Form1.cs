@@ -16,5 +16,17 @@ namespace Bloc_de_notas
         {
             InitializeComponent();
         }
+
+        private void abrirToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+            openFileDialog1.Filter = "Archivos de texto|*.txt";
+            openFileDialog1.Title = "Abrir archivo";
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                richTextBox1.Text = System.IO.File.ReadAllText(openFileDialog1.FileName);
+            }
+        }
     }
 }
