@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Bloc_de_notas
 {
@@ -22,41 +23,43 @@ namespace Bloc_de_notas
         public Form1()
         {
             InitializeComponent();
-            RichTextBox richTextBox = new RichTextBox();
-            richTextBox.Dock = DockStyle.Fill;
-            richTextBox.Font = new Font("Consolas", 14);
-            richTextBox.TextChanged += RichTextBox_TextChanged;
+            System.Windows.Forms.TextBox textBox = new System.Windows.Forms.TextBox();
+            textBox.Dock = DockStyle.Fill;
+            textBox.Font = new Font("Consolas", 14);
+            textBox.Multiline = true;
 
-            tabControl1.TabPages[0].Controls.Add(richTextBox);
+            textBox.TextChanged += RichTextBox_TextChanged;
+
+            tabControl1.TabPages[0].Controls.Add(textBox);
             tabControl1.TabPages[0].Tag = "";
 
             // Diccionario de emojis
             emojis = new Dictionary<string, string>
             {
-                { ":NOAUTORIZO:", @"images\5.png" },
-                { ":EZ:", @"images\1x.png" },
-                { ":CINEMA:", @"images\2.png" },
-                { ":xdd:", @"images\3.png" },
-                { ":looking:", @"images\4.png" }
+                { "(°_°)", "💀" },
+                { "<:P", "🥵" },
+                { "B)", "😎" },
+                { ":)", "🌚" },
+                { ":chocolate:", "🍫" }
             };
         }
 
         private void RichTextBox_TextChanged(object sender, EventArgs e)
         {
-            RichTextBox richTextBox = (RichTextBox)sender;
+            System.Windows.Forms.TextBox richTextBox = (System.Windows.Forms.TextBox)sender;
             foreach (var emoji in emojis)
             {
                 ReplaceTextWithImage(richTextBox, emoji.Key, emoji.Value);
             }
         }
 
-        private void ReplaceTextWithImage(RichTextBox richTextBox, string emojiText, string imagePath)
+        private void ReplaceTextWithImage(System.Windows.Forms.TextBox richTextBox, string emojiText, string emoji)
         {
             int index = richTextBox.Text.IndexOf(emojiText);
             while (index != -1)
             {
                 richTextBox.Select(index, emojiText.Length);
-                Clipboard.SetImage(Image.FromFile(imagePath)); // Carga la imagen desde el archivo
+                Clipboard.SetText(emoji); // Carga la imagen desde el archivo
                 richTextBox.Paste();  // Reemplaza el texto con la imagen
 
                 index = richTextBox.Text.IndexOf(emojiText, index + 1);
@@ -67,13 +70,13 @@ namespace Bloc_de_notas
         private void abrirToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog opf = new OpenFileDialog();
-            opf.Filter = "Archivos de texto|*.txt|RTF|*.rtf";
+            opf.Filter = "Archivos de texto|*.txt";
             opf.Title = "Abrir archivo";
 
             if (opf.ShowDialog() == DialogResult.OK)
             {
                 crearPestaña();
-                ((RichTextBox)tabControl1.SelectedTab.Controls[0]).Text = File.ReadAllText(opf.FileName);
+                ((System.Windows.Forms.TextBox)tabControl1.SelectedTab.Controls[0]).Text = File.ReadAllText(opf.FileName);
                 tabControl1.SelectedTab.Tag = opf.FileName;
                 tabControl1.SelectedTab.Text = Path.GetFileName(opf.FileName);
                 archivoToolStripMenuItem.DropDownItems[2].Enabled = true;
@@ -88,15 +91,15 @@ namespace Bloc_de_notas
         private void guardarComoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog();
-            sfd.Filter = "Archivos de texto (*.txt)|*.txt|RTF|*.rtf";
+            sfd.Filter = "Archivos de texto|*.txt";
             sfd.Title = "Guardar archivo";
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                RichTextBox currentRichTextBox = (RichTextBox)tabControl1.SelectedTab.Controls[0];
+                System.Windows.Forms.TextBox currentTextBox = (System.Windows.Forms.TextBox)tabControl1.SelectedTab.Controls[0];
 
                 // Convertir las imágenes a texto antes de guardar
-                string textWithEmojis = ConvertImagesToText(currentRichTextBox);
+                string textWithEmojis = ConvertImagesToText(currentTextBox);
 
                 // Guardar el texto con emojis en el archivo
                 File.WriteAllText(sfd.FileName, textWithEmojis);
@@ -119,12 +122,13 @@ namespace Bloc_de_notas
             nuevaPestana.Tag = "";
             tabControl1.TabPages.Add(nuevaPestana);
 
-            RichTextBox richTextBox = new RichTextBox();
-            richTextBox.Dock = DockStyle.Fill;
-            richTextBox.Font = new Font("Consolas", 14);
-            richTextBox.TextChanged += RichTextBox_TextChanged;
+            System.Windows.Forms.TextBox newTextBox = new System.Windows.Forms.TextBox();
+            newTextBox.Dock = DockStyle.Fill;
+            newTextBox.Font = new Font("Consolas", 14);
+            newTextBox.Multiline = true;
+            newTextBox.TextChanged += RichTextBox_TextChanged;
 
-            nuevaPestana.Controls.Add(richTextBox);
+            nuevaPestana.Controls.Add(newTextBox);
 
             tabControl1.SelectedTab = nuevaPestana;
 
@@ -151,10 +155,10 @@ namespace Bloc_de_notas
 
         private void guardarToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            RichTextBox currentRichTextBox = (RichTextBox)tabControl1.SelectedTab.Controls[0];
+            System.Windows.Forms.TextBox currentTextBox = (System.Windows.Forms.TextBox)tabControl1.SelectedTab.Controls[0];
 
             // Convertir las imágenes a texto antes de guardar
-            string textWithEmojis = ConvertImagesToText(currentRichTextBox);
+            string textWithEmojis = ConvertImagesToText(currentTextBox);
 
             // Guardar el texto con emojis en el archivo
             File.WriteAllText(tabControl1.SelectedTab.Tag.ToString(), textWithEmojis);
@@ -165,22 +169,16 @@ namespace Bloc_de_notas
             tabControl1.TabPages.RemoveAt(tabControl1.SelectedIndex);
         }
 
-        private string ConvertImagesToText(RichTextBox richTextBox)
+        private string ConvertImagesToText(System.Windows.Forms.TextBox richTextBox)
         {
-            // Convertimos el contenido de la RichTextBox a RTF
-            string rtfContent = richTextBox.Rtf;
+            string content = richTextBox.Text;
 
             foreach (var emoji in emojis)
             {
-                // Buscamos el código RTF de la imagen correspondiente y lo reemplazamos con el texto del emoji
-                string imageRtf = GetImageRtf(emoji.Value);
-                if (!string.IsNullOrEmpty(imageRtf))
-                {
-                    rtfContent = rtfContent.Replace(imageRtf, emoji.Key);
-                }
+                content = content.Replace(emoji.Value, emoji.Key);
             }
 
-            return rtfContent;
+            return content;
         }
 
         // Método auxiliar para obtener el RTF de una imagen a partir de su ruta
