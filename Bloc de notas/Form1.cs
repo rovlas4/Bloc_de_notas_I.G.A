@@ -1,18 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Bloc_de_notas
 {
@@ -28,12 +18,11 @@ namespace Bloc_de_notas
             textBox.Font = new Font("Consolas", 14);
             textBox.Multiline = true;
 
-            textBox.TextChanged += RichTextBox_TextChanged;
+            textBox.TextChanged += TextBox_TextChanged;
 
             tabControl1.TabPages[0].Controls.Add(textBox);
             tabControl1.TabPages[0].Tag = "";
 
-            // Diccionario de emojis
             emojis = new Dictionary<string, string>
             {
                 { "(°_°)", "💀" },
@@ -44,29 +33,28 @@ namespace Bloc_de_notas
             };
         }
 
-        private void RichTextBox_TextChanged(object sender, EventArgs e)
+        private void TextBox_TextChanged(object sender, EventArgs e)
         {
-            System.Windows.Forms.TextBox richTextBox = (System.Windows.Forms.TextBox)sender;
+            System.Windows.Forms.TextBox textBox = (System.Windows.Forms.TextBox)sender;
             foreach (var emoji in emojis)
             {
-                ReplaceTextWithImage(richTextBox, emoji.Key, emoji.Value);
+                ReplaceTextWithImage(textBox, emoji.Key, emoji.Value);
             }
         }
 
-        private void ReplaceTextWithImage(System.Windows.Forms.TextBox richTextBox, string emojiText, string emoji)
+        private void ReplaceTextWithImage(System.Windows.Forms.TextBox textBox, string emojiText, string emoji)
         {
-            int index = richTextBox.Text.IndexOf(emojiText);
+            int index = textBox.Text.IndexOf(emojiText);
             while (index != -1)
             {
-                richTextBox.Select(index, emojiText.Length);
-                Clipboard.SetText(emoji); // Carga la imagen desde el archivo
-                richTextBox.Paste();  // Reemplaza el texto con la imagen
+                textBox.Select(index, emojiText.Length);
+                Clipboard.SetText(emoji);
+                textBox.Paste();
 
-                index = richTextBox.Text.IndexOf(emojiText, index + 1);
+                index = textBox.Text.IndexOf(emojiText, index + 1);
             }
         }
 
-        // El resto de tu código permanece igual
         private void abrirToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog opf = new OpenFileDialog();
@@ -98,11 +86,9 @@ namespace Bloc_de_notas
             {
                 System.Windows.Forms.TextBox currentTextBox = (System.Windows.Forms.TextBox)tabControl1.SelectedTab.Controls[0];
 
-                // Convertir las imágenes a texto antes de guardar
-                string textWithEmojis = ConvertImagesToText(currentTextBox);
+                string textWithEmoticons = ConvertImagesToText(currentTextBox);
 
-                // Guardar el texto con emojis en el archivo
-                File.WriteAllText(sfd.FileName, textWithEmojis);
+                File.WriteAllText(sfd.FileName, textWithEmoticons);
 
                 tabControl1.SelectedTab.Tag = sfd.FileName;
                 tabControl1.SelectedTab.Text = Path.GetFileName(sfd.FileName);
@@ -126,7 +112,7 @@ namespace Bloc_de_notas
             newTextBox.Dock = DockStyle.Fill;
             newTextBox.Font = new Font("Consolas", 14);
             newTextBox.Multiline = true;
-            newTextBox.TextChanged += RichTextBox_TextChanged;
+            newTextBox.TextChanged += TextBox_TextChanged;
 
             nuevaPestana.Controls.Add(newTextBox);
 
@@ -157,11 +143,9 @@ namespace Bloc_de_notas
         {
             System.Windows.Forms.TextBox currentTextBox = (System.Windows.Forms.TextBox)tabControl1.SelectedTab.Controls[0];
 
-            // Convertir las imágenes a texto antes de guardar
-            string textWithEmojis = ConvertImagesToText(currentTextBox);
+            string textWithEmoticons = ConvertImagesToText(currentTextBox);
 
-            // Guardar el texto con emojis en el archivo
-            File.WriteAllText(tabControl1.SelectedTab.Tag.ToString(), textWithEmojis);
+            File.WriteAllText(tabControl1.SelectedTab.Tag.ToString(), textWithEmoticons);
         }
 
         private void cerrarPestañaToolStripMenuItem_Click(object sender, EventArgs e)
@@ -169,9 +153,9 @@ namespace Bloc_de_notas
             tabControl1.TabPages.RemoveAt(tabControl1.SelectedIndex);
         }
 
-        private string ConvertImagesToText(System.Windows.Forms.TextBox richTextBox)
+        private string ConvertImagesToText(System.Windows.Forms.TextBox textBox)
         {
-            string content = richTextBox.Text;
+            string content = textBox.Text;
 
             foreach (var emoji in emojis)
             {
@@ -180,28 +164,5 @@ namespace Bloc_de_notas
 
             return content;
         }
-
-        // Método auxiliar para obtener el RTF de una imagen a partir de su ruta
-        private string GetImageRtf(string imagePath)
-        {
-            using (var img = Image.FromFile(imagePath))
-            {
-                string temp;
-                Clipboard.SetImage(img);
-                RichTextBox tempRichTextBox = new RichTextBox();
-                tempRichTextBox.Font = new Font("Consolas", 14);
-                tempRichTextBox.Paste();
-                temp = tempRichTextBox.Rtf;
-
-                temp = temp.Replace(@"{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang3082{\fonttbl{\f0\fnil\fcharset0 Consolas; } {\f1\fnil Consolas; } }" + Environment.NewLine + 
-                                    @"{\*\generator Riched20 10.0.22621}\viewkind4\uc1" + Environment.NewLine +
-                                    @"\pard\f0\fs29", "");
-                temp = temp.Replace(@"\par" + Environment.NewLine +
-                                    "}", "");
-                temp = temp.Trim();
-                return temp;
-            }
-        }
-
     }
 }
