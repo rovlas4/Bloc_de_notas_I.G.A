@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Bloc_de_notas
 {
@@ -16,6 +17,7 @@ namespace Bloc_de_notas
             System.Windows.Forms.TextBox textBox = new System.Windows.Forms.TextBox();
             textBox.Dock = DockStyle.Fill;
             textBox.Font = new Font("Consolas", 14);
+            textBox.ScrollBars = ScrollBars.Vertical;
             textBox.Multiline = true;
 
             textBox.TextChanged += TextBox_TextChanged;
@@ -31,6 +33,24 @@ namespace Bloc_de_notas
                 { ":)", "🌚" },
                 { ":chocolate:", "🍫" }
             };
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tabControl1.SelectedTab != null && tabControl1.SelectedTab.Tag.Equals(""))
+            {
+                archivoToolStripMenuItem.DropDownItems[2].Enabled = false;
+                archivoToolStripMenuItem.DropDownItems[1].Enabled = true;
+            }
+            else if (tabControl1.SelectedTab != null)
+            {
+                archivoToolStripMenuItem.DropDownItems[2].Enabled = true;
+            }
+            else
+            {
+                archivoToolStripMenuItem.DropDownItems[1].Enabled = false;
+                archivoToolStripMenuItem.DropDownItems[2].Enabled = false;
+            }
         }
 
         private void TextBox_TextChanged(object sender, EventArgs e)
@@ -111,6 +131,7 @@ namespace Bloc_de_notas
             System.Windows.Forms.TextBox newTextBox = new System.Windows.Forms.TextBox();
             newTextBox.Dock = DockStyle.Fill;
             newTextBox.Font = new Font("Consolas", 14);
+            newTextBox.ScrollBars = ScrollBars.Vertical;
             newTextBox.Multiline = true;
             newTextBox.TextChanged += TextBox_TextChanged;
 
@@ -121,24 +142,6 @@ namespace Bloc_de_notas
             archivoToolStripMenuItem.DropDownItems[1].Enabled = true;
         }
 
-        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (tabControl1.SelectedTab != null && tabControl1.SelectedTab.Tag.Equals(""))
-            {
-                archivoToolStripMenuItem.DropDownItems[2].Enabled = false;
-                archivoToolStripMenuItem.DropDownItems[1].Enabled = true;
-            }
-            else if (tabControl1.SelectedTab != null)
-            {
-                archivoToolStripMenuItem.DropDownItems[2].Enabled = true;
-            }
-            else
-            {
-                archivoToolStripMenuItem.DropDownItems[1].Enabled = false;
-                archivoToolStripMenuItem.DropDownItems[2].Enabled = false;
-            }
-        }
-
         private void guardarToolStripMenuItem_Click(object sender, EventArgs e)
         {
             System.Windows.Forms.TextBox currentTextBox = (System.Windows.Forms.TextBox)tabControl1.SelectedTab.Controls[0];
@@ -146,11 +149,6 @@ namespace Bloc_de_notas
             string textWithEmoticons = ConvertImagesToText(currentTextBox);
 
             File.WriteAllText(tabControl1.SelectedTab.Tag.ToString(), textWithEmoticons);
-        }
-
-        private void cerrarPestañaToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            tabControl1.TabPages.RemoveAt(tabControl1.SelectedIndex);
         }
 
         private string ConvertImagesToText(System.Windows.Forms.TextBox textBox)
@@ -163,6 +161,11 @@ namespace Bloc_de_notas
             }
 
             return content;
+        }
+
+        private void cerrarPestañaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tabControl1.TabPages.RemoveAt(tabControl1.SelectedIndex);
         }
     }
 }
