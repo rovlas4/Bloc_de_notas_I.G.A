@@ -41,7 +41,15 @@ namespace Bloc_de_notas
             richTextBox.TextChanged += richTextBox1_TextChanged;
 
             tabControl1.TabPages[0].Controls.Add(richTextBox);
-            tabControl1.TabPages[0].Tag = "";
+
+            emojis = new Dictionary<string, string>
+            {
+                { ":NOAUTORIZO:", @"C:\Users\ojeda\OneDrive\Imágenes\EMOGIS\GHSTCMjaUAARiMY.png" },
+                { ":EZ:", @"C:\Users\ojeda\OneDrive\Imágenes\EMOGIS\st,small,507x507-pad,600x600,f8f8f8.u3.png" },
+                { ":CINEMA:", @"C:\Users\ojeda\OneDrive\Imágenes\EMOGIS\1366_2000.png" },
+                { ":xdd:", @"C:\Users\ojeda\OneDrive\Imágenes\EMOGIS\png-transparent-emoji-emote-emoticon-emoticons-xd-emoticons-icon.png" },
+                { ":looking:", @"C:\Users\ojeda\OneDrive\Imágenes\EMOGIS\0f89b98b793bd2aedd16ad3484128f02.png" }
+            };
         }
 
         private void ReplaceTextWithImage(RichTextBox richTextBox, string emojiText, string imagePath)
@@ -50,8 +58,21 @@ namespace Bloc_de_notas
             while (index != -1)
             {
                 richTextBox.Select(index, emojiText.Length);
-                Clipboard.SetImage(Image.FromFile(imagePath)); // Carga la imagen desde el archivo
-                richTextBox.Paste();  // Reemplaza el texto con la imagen
+                try
+                {
+                    Image emojiImage = Image.FromFile(imagePath);
+
+                    // Ajustar el tamaño de la imagen al tamaño del texto
+                    int textHeight = (int)richTextBox.Font.GetHeight();
+                    Image resizedImage = new Bitmap(emojiImage, new Size(textHeight, textHeight));
+
+                    Clipboard.SetImage(resizedImage); // Poner la imagen redimensionada en el portapapeles
+                    richTextBox.Paste();  // Reemplazar el texto con la imagen
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al cargar la imagen: {ex.Message}");
+                }
 
                 index = richTextBox.Text.IndexOf(emojiText, index + 1);
             }
@@ -441,27 +462,46 @@ namespace Bloc_de_notas
             tabControl1.TabPages.RemoveAt(tabControl1.SelectedIndex);
         }
 
-        private string ConvertImagesToText(RichTextBox richTextBox)
+        private void ReplaceImagesWithText(RichTextBox richTextBox)
         {
-            // Convertimos el contenido de la RichTextBox a RTF
-            string rtfContent = richTextBox.Rtf;
-
-            foreach (var emoji in emojis)
+            // Iteramos desde el final al principio para evitar desajustes en los índices
+            for (int i = richTextBox.TextLength - 1; i >= 0; i--)
             {
-                // Buscamos el código RTF de la imagen correspondiente y lo reemplazamos con el texto del emoji
-                string imageRtf = GetImageRtf(emoji.Value);
-                if (!string.IsNullOrEmpty(imageRtf))
+                richTextBox.Select(i, 1); // Seleccionamos un carácter
+
+                // Verificamos si es una imagen en el RTF
+                if (richTextBox.SelectedRtf.Contains(@"\pict"))
                 {
-                    rtfContent = rtfContent.Replace(imageRtf, emoji.Key);
+                    // Buscar la palabra clave correspondiente a la imagen
+                    foreach (var emoji in emojis)
+                    {
+                        string imageRtf = GetImageRtf(emoji.Value); // Obtenemos el RTF de la imagen
+                        if (richTextBox.SelectedRtf.Contains(imageRtf))
+                        {
+                            // Reemplazamos la imagen por la palabra clave
+                            richTextBox.Select(i, 1);  // Seleccionamos la imagen
+                            richTextBox.SelectedText = emoji.Key;  // Reemplazamos la imagen por el texto
+                            break;
+                        }
+                    }
                 }
             }
+        }
 
-            return rtfContent;
+        private void cerrarPestañaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tabControl1.TabPages.RemoveAt(tabControl1.SelectedIndex);
         }
 
         // Método auxiliar para obtener el RTF de una imagen a partir de su ruta
         private string GetImageRtf(string imagePath)
         {
+            if (!File.Exists(imagePath))
+            {
+                MessageBox.Show($"El archivo de imagen no fue encontrado: {imagePath}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+
             using (var img = Image.FromFile(imagePath))
             {
                 string temp;
@@ -481,5 +521,9 @@ namespace Bloc_de_notas
             }
         }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
